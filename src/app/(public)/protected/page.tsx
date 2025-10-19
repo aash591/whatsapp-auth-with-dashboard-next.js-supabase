@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Copy, Share2, LogOut, Gift, Key } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -21,7 +21,7 @@ export default function ProtectedPage() {
   
   const [authMethod, setAuthMethod] = useState<'verification' | 'password' | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<{ id: string; name: string; whatsapp_number: string; created_at: string } | null>(null);
   const [referralLink, setReferralLink] = useState('');
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -142,7 +142,7 @@ export default function ProtectedPage() {
       } else {
         setPasswordError(data.error || 'Failed to change password');
       }
-    } catch (error) {
+    } catch {
       setPasswordError('Something went wrong. Please try again.');
     } finally {
       setPasswordLoading(false);

@@ -7,7 +7,7 @@ import { useAuthenticatedRequest } from '@/lib/use-csrf';
 export default function VerificationStatus() {
   const router = useRouter();
   const { makeRequest } = useAuthenticatedRequest();
-  const { loading, verified, code, name, error, cacheStats, refresh } = useVerificationStatus({
+  const { loading, verified, code, error, cacheStats } = useVerificationStatus({
     enableRealtime: true,
     autoRedirect: true,
   });

@@ -35,7 +35,7 @@ export default function Home() {
       } else {
         setError(data.error || 'Login failed');
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ export default function Home() {
 
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
               <Button
                 variant="link"
                 onClick={handleSignUp}

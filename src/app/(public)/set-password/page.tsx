@@ -83,7 +83,7 @@ export default function SetPasswordPage() {
         const data = await response.json();
         setError(data.error || 'Failed to set password');
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

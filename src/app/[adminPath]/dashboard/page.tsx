@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       {/* Welcome Section */}
       <div className="p-4">
         <h2 className="text-2xl font-bold text-gray-900">Welcome back, {adminUser?.name}!</h2>
-        <p className="text-gray-600">Here's what's happening with your system today.</p>
+        <p className="text-gray-600">Here&apos;s what&apos;s happening with your system today.</p>
       </div>
     </div>
   );

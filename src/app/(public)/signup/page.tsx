@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthenticatedRequest } from '@/lib/use-csrf';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export default function SignUpPage() {
+function SignUpForm() {
   const [name, setName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [referralCode, setReferralCode] = useState('');
@@ -64,7 +64,7 @@ export default function SignUpPage() {
           setError(data.error || 'Failed to generate code');
         }
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -128,11 +128,11 @@ export default function SignUpPage() {
               />
               {referralCode && (
                 <p className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                  🎉 Referral code applied! You'll earn bonus points when you sign up.
+                  🎉 Referral code applied! You&apos;ll earn bonus points when you sign up.
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Enter a friend's referral code to get bonus points
+                Enter a friend&apos;s referral code to get bonus points
               </p>
             </div>
 
@@ -179,5 +179,17 @@ export default function SignUpPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   );
 }

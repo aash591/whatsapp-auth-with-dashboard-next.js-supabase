@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
       } else {
         setError(data.error || 'Failed to initiate password reset');
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
               <div className="text-green-500 text-6xl mb-4">✅</div>
               <h2 className="text-2xl font-bold text-foreground mb-4">Code Sent!</h2>
               <p className="text-muted-foreground mb-4">
-                We've sent a verification code to your WhatsApp. Please check your messages and reply with the code.
+                We&apos;ve sent a verification code to your WhatsApp. Please check your messages and reply with the code.
               </p>
               <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
                 Code: <strong>{code}</strong>
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
 
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Button
                 variant="link"
                 onClick={() => router.push('/signup')}
