@@ -21,7 +21,7 @@ export default function ProtectedPage() {
   
   const [authMethod, setAuthMethod] = useState<'verification' | 'password' | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [userData, setUserData] = useState<{ id: string; name: string; whatsapp_number: string; created_at: string } | null>(null);
+  const [userData, setUserData] = useState<{ id: string; name: string; whatsapp_number: string; created_at: string; referral_points?: number; available_points?: number } | null>(null);
   const [referralLink, setReferralLink] = useState('');
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -188,7 +188,7 @@ export default function ProtectedPage() {
                     <div className="flex flex-col space-y-1 leading-none">
                       <p className="font-medium">{name}</p>
                       <p className="w-[200px] truncate text-sm text-muted-foreground">
-                        {userData?.phone || 'User'}
+                        {userData?.whatsapp_number || 'User'}
                       </p>
                     </div>
                   </div>
