@@ -193,7 +193,7 @@ class VerificationCache {
         const now = Date.now();
         
         // Filter out expired entries
-        const validEntries = cacheData.filter(([code, data]: [string, VerificationCacheData]) => {
+        const validEntries = cacheData.filter(([, data]: [string, VerificationCacheData]) => {
           return data.expiresAt > now;
         });
 

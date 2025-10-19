@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateAccessToken, verifyAccessToken } from '@/lib/jwt';
-import { JWTPayload } from '@/lib/jwt-config';
+// import { JWTPayload } from '@/lib/jwt-config';
 
 interface SessionData {
   code: string;
@@ -70,8 +70,8 @@ export function verifySecureToken(token: string): SessionData | null {
  * Generate cryptographically secure random token
  * Used for CSRF tokens, session IDs, etc.
  */
-export function generateSecureRandomToken(bytes: number = 32): string {
-  const crypto = require('crypto');
+export async function generateSecureRandomToken(bytes: number = 32): Promise<string> {
+  const crypto = await import('crypto');
   return crypto.randomBytes(bytes).toString('base64url');
 }
 
@@ -105,13 +105,13 @@ export function getTokenFromRequest(req: NextApiRequest): string | null {
 /**
  * Constant-time string comparison (prevents timing attacks)
  */
-export function secureCompare(a: string, b: string): boolean {
+export async function secureCompare(a: string, b: string): Promise<boolean> {
   if (a.length !== b.length) {
     return false;
   }
   
   try {
-    const nodeCrypto = require('crypto');
+    const nodeCrypto = await import('crypto');
     return nodeCrypto.timingSafeEqual(
       Buffer.from(a),
       Buffer.from(b)

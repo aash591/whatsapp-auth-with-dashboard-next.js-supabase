@@ -128,7 +128,7 @@ export function useVerificationStatus(options: UseVerificationStatusOptions = {}
         console.error('Error getting JWT token:', error);
       }
     }
-  }, [autoRedirect, router, updateCache]);
+  }, [autoRedirect, router, updateCache, makeRequest]);
 
   /**
    * Initialize verification status

@@ -18,11 +18,11 @@ export async function middleware(request: NextRequest) {
   const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || process.env.ADMIN_PATH || '/admin';
   
   // Define admin routes that require admin authentication
-  const adminRoutes = [
-    `${adminPath}/dashboard`,
-    `${adminPath}/users`,
-    `${adminPath}/settings`
-  ];
+  // const adminRoutes = [
+  //   `${adminPath}/dashboard`,
+  //   `${adminPath}/users`,
+  //   `${adminPath}/settings`
+  // ];
 
   // Check if current path requires authentication
   const isProtectedRoute = protectedRoutes.some(route => 

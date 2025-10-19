@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { getServerEnv } from './server-env';
+// import { getServerEnv } from './server-env';
 
 export interface WebhookSecurityConfig {
   requireSignature: boolean;
@@ -128,7 +128,7 @@ export function getRateLimitStatus(ip: string, windowMs: number = 60000): {
  */
 export function logSecurityEvent(
   event: 'webhook_accepted' | 'webhook_rejected' | 'rate_limit_exceeded' | 'invalid_signature',
-  details: any
+  details: Record<string, unknown>
 ): void {
   // Only log security issues, not successful events
   if (event !== 'webhook_accepted') {
