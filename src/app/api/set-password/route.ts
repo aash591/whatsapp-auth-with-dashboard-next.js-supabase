@@ -149,7 +149,8 @@ export async function POST(request: NextRequest) {
 
       userId = existingUser.id;
     } else {
-      // Create new user
+      // Use the verification code as the referral code
+      const referralCode = sanitizedCode;
       const { data: newUser, error: createError } = await supabaseAdmin
         .from('users')
         .insert({
@@ -157,6 +158,10 @@ export async function POST(request: NextRequest) {
           name: verificationData.name,
           password_hash: passwordHash,
           verified: true,
+          referral_code: referralCode,
+          referral_points: 0,
+          available_points: 0,
+          is_fraudulent: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })

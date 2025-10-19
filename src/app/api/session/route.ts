@@ -39,14 +39,33 @@ export async function GET(request: NextRequest) {
     
     // Check if the code looks like a session ID (password authentication)
     if (sessionData.code && sessionData.code.length > 10) {
-      // This is password authentication - JWT is self-contained and secure
-      // No database query needed - JWT contains all necessary information
+      // This is password authentication - get user data from users table
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('phone, referral_code, referral_points, available_points')
+        .eq('phone', sessionData.whatsappNumber)
+        .single();
+
+      if (userError || !userData) {
+        return handleDatabaseError(userError, 'session', {
+          operation: 'session',
+          userId: sessionData.code,
+          ip: request.headers.get('x-forwarded-for') || 'unknown',
+          userAgent: request.headers.get('user-agent') || 'unknown',
+          timestamp: new Date().toISOString()
+        });
+      }
+
       return NextResponse.json({
         success: true,
         data: {
           code: sessionData.code, // Random session ID from JWT
           name: sessionData.name,
           verified: sessionData.verified,
+          phone: userData.phone,
+          referral_code: userData.referral_code,
+          referral_points: userData.referral_points,
+          available_points: userData.available_points,
         },
       });
     } else {
@@ -68,12 +87,22 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      // Get user data from users table for referral info
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('referral_code, referral_points, available_points')
+        .eq('phone', sessionData.whatsappNumber)
+        .single();
+
       const response = NextResponse.json({
         success: true,
         data: {
           code: data.code,
           name: data.name,
           verified: data.verified,
+          referral_code: userData?.referral_code,
+          referral_points: userData?.referral_points || 0,
+          available_points: userData?.available_points || 0,
         },
       });
 

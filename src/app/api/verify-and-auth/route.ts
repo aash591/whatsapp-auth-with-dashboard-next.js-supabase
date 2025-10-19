@@ -65,6 +65,35 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Create or update user record with referral code
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('phone', verificationData.whatsapp_number)
+      .single();
+
+    if (!existingUser) {
+      // Create new user with referral code
+      const { error: userError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          phone: verificationData.whatsapp_number,
+          name: verificationData.name,
+          referral_code: verificationData.code, // Use verification code as referral code
+          verified: true,
+          verified_at: new Date().toISOString(),
+        });
+
+      if (userError) {
+        return handleDatabaseError(userError, 'verify-and-auth', {
+          operation: 'verify-and-auth',
+          ip: request.headers.get('x-forwarded-for') || 'unknown',
+          userAgent: request.headers.get('user-agent') || 'unknown',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
     // Generate JWT token for the verified user
     const secureToken = generateSecureToken({
       code: verificationData.code,

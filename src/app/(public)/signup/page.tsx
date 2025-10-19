@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthenticatedRequest } from '@/lib/use-csrf';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,10 +12,20 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export default function SignUpPage() {
   const [name, setName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { makeRequest, isLoading: csrfLoading } = useAuthenticatedRequest();
+
+  // Auto-populate referral code from URL parameter
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode.toUpperCase());
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +35,7 @@ export default function SignUpPage() {
     try {
       const response = await makeRequest('/api/generate-code', {
         method: 'POST',
-        body: JSON.stringify({ name, whatsappNumber }),
+        body: JSON.stringify({ name, whatsappNumber, referralCode }),
       });
 
       const data = await response.json();
@@ -103,6 +113,27 @@ export default function SignUpPage() {
                 placeholder="+1234567890"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+              <Input
+                id="referralCode"
+                type="text"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="A1B2C3"
+                maxLength={6}
+                className="uppercase"
+              />
+              {referralCode && (
+                <p className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                  🎉 Referral code applied! You'll earn bonus points when you sign up.
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Enter a friend's referral code to get bonus points
+              </p>
             </div>
 
             {error && (
