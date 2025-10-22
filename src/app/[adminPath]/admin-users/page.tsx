@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -30,8 +29,6 @@ interface AdminUserForm {
 }
 
 export default function AdminUsersPage() {
-  const params = useParams();
-  const adminPath = params.adminPath;
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,7 +55,9 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/admin/admin-users', {
+        credentials: 'include', // Include admin auth cookie
+      });
       const data = await response.json();
       if (data.success) {
         setAdminUsers(data.data);
@@ -78,7 +77,7 @@ export default function AdminUsersPage() {
     setFormLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/admin/admin-users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -106,7 +105,7 @@ export default function AdminUsersPage() {
     setFormLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+      const response = await fetch(`/api/admin/admin-users/${editingUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -132,7 +131,7 @@ export default function AdminUsersPage() {
     if (!confirm('Are you sure you want to delete this admin user?')) return;
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`/api/admin/admin-users/${userId}`, {
         method: 'DELETE'
       });
 
@@ -143,7 +142,7 @@ export default function AdminUsersPage() {
       } else {
         setError(data.message || 'Failed to delete admin user');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to delete admin user');
     }
   };

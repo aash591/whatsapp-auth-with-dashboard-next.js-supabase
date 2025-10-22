@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/database/supabaseAdmin';
 import { decodeAdminToken } from '@/lib/auth';
-import { comparePassword, hashPassword } from '@/lib/auth-utils';
+import { comparePassword, hashPassword } from '@/lib/auth/auth-utils';
 import { 
   createSecureErrorResponse, 
   handleDatabaseError, 
   handleValidationError,
   createGenericErrorResponse
-} from '@/lib/secure-error-handling-enhanced';
-import { applyAPISecurityHeaders } from '@/lib/security-headers';
+} from '@/lib/security/error-handling';
+import { applyAPISecurityHeaders } from '@/lib/security/security-headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Check if username is already taken by another user
     if (username !== currentAdmin.username) {
-      const { data: existingUser, error: checkError } = await supabaseAdmin
+      const { data: existingUser } = await supabaseAdmin
         .from('admin_users')
         .select('id')
         .eq('username', username)
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // Check if email is already taken by another user
     if (email !== currentAdmin.email) {
-      const { data: existingEmail, error: emailError } = await supabaseAdmin
+      const { data: existingEmail } = await supabaseAdmin
         .from('admin_users')
         .select('id')
         .eq('email', email)
@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare update data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
       name,
       username,

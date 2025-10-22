@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
-import { useCSRF } from '@/lib/use-csrf';
+import { useCSRF } from '@/lib/hooks/use-csrf';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -28,9 +28,10 @@ export default function AdminLoginPage() {
 
     try {
       // Get CSRF token
-      if (!csrfToken) {
-        await refreshToken();
-        if (!csrfToken) {
+      let token = csrfToken;
+      if (!token) {
+        token = await refreshToken();
+        if (!token) {
           setError('Failed to get security token. Please refresh the page.');
           setLoading(false);
           return;
@@ -41,7 +42,7 @@ export default function AdminLoginPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken || ''
+          'X-CSRF-Token': token
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -128,10 +129,6 @@ export default function AdminLoginPage() {
             </form>
           </CardContent>
         </Card>
-        
-        <div className="text-center text-sm text-gray-600">
-          <p>Default credentials: admin / admin123</p>
-        </div>
       </div>
     </div>
   );

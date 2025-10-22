@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Users, Search, Phone, Calendar } from 'lucide-react';
 
@@ -16,8 +14,6 @@ interface User {
 }
 
 export default function UsersPage() {
-  const params = useParams();
-  const adminPath = params.adminPath;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,7 +27,14 @@ export default function UsersPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/users');
+      const response = await fetch('/api/admin/regular-users', {
+        credentials: 'include', // Include admin auth cookie
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       if (data.success) {
         setUsers(data.data);
@@ -47,8 +50,8 @@ export default function UsersPage() {
   };
 
   const filteredUsers = users.filter(user =>
-    user.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (user.phone?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
 
@@ -127,7 +130,7 @@ export default function UsersPage() {
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                           <span className="text-blue-600 text-sm font-medium">
-                            {user.name ? user.name.charAt(0).toUpperCase() : user.phone.charAt(0)}
+                            {user.name ? user.name.charAt(0).toUpperCase() : (user.phone ? user.phone.charAt(0) : '?')}
                           </span>
                         </div>
                         <div className="ml-4">
@@ -135,7 +138,7 @@ export default function UsersPage() {
                             {user.name || 'No name'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {user.id.slice(0, 8)}...
+                            ID: {user.id?.slice(0, 8) || 'N/A'}...
                           </div>
                         </div>
                       </div>
@@ -143,7 +146,7 @@ export default function UsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-900">
                         <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                        {user.phone}
+                        {user.phone || 'No phone'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

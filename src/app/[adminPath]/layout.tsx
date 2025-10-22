@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +20,7 @@ interface AdminUser {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -71,8 +69,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         } else {
           router.push(`${adminPath}/login`);
         }
-      } catch (error) {
-        console.error('Admin auth check failed:', error);
+      } catch (err) {
+        console.error('Admin auth check failed:', err);
         router.push(`${adminPath}/login`);
       } finally {
         setLoading(false);
@@ -88,8 +86,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         method: 'POST',
         credentials: 'include'
       });
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (err) {
+      console.error('Logout error:', err);
     } finally {
       router.push(`${adminPath}/login`);
     }
@@ -160,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       } else {
         setEditError(data.message || 'Failed to update profile');
       }
-    } catch (error) {
+    } catch {
       setEditError('Failed to update profile');
     } finally {
       setEditLoading(false);

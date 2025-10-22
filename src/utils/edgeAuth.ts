@@ -3,7 +3,7 @@
  * Uses proper JWT with jsonwebtoken library
  */
 
-import { generateAccessToken, verifyAccessToken } from '@/lib/jwt';
+import { generateAccessToken, verifyAccessToken } from '@/lib/auth/jwt';
 
 interface SessionData {
   code: string;

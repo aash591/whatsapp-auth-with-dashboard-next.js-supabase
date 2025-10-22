@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/database/supabaseAdmin';
 import { decodeAdminToken } from '@/lib/auth';
-import { applyAPISecurityHeaders } from '@/lib/security-headers';
+import { applyAPISecurityHeaders } from '@/lib/security/security-headers';
 import { 
   createSecureErrorResponse, 
   createGenericErrorResponse
-} from '@/lib/secure-error-handling-enhanced';
+} from '@/lib/security/error-handling';
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if admin is still active
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!(session.admin_users as any).is_active) {
       return createSecureErrorResponse('UNAUTHORIZED', 401, {
         operation: 'admin-me',
@@ -77,11 +78,17 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       data: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         id: (session.admin_users as any).id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         name: (session.admin_users as any).name,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         username: (session.admin_users as any).username,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         email: (session.admin_users as any).email,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         role: (session.admin_users as any).role,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         lastLogin: (session.admin_users as any).last_login
       }
     });

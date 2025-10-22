@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/database/supabaseAdmin';
 import { decodeAdminToken } from '@/lib/auth';
-import { applyAPISecurityHeaders } from '@/lib/security-headers';
+import { applyAPISecurityHeaders } from '@/lib/security/security-headers';
 import { 
   createGenericErrorResponse
-} from '@/lib/secure-error-handling-enhanced';
+} from '@/lib/security/error-handling';
 
 export async function POST(request: NextRequest) {
   try {

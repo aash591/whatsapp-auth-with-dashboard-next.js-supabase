@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyAccessTokenMiddleware } from '@/lib/jwt-middleware-secure';
-import { applySecurityHeaders } from '@/lib/security-headers';
+import { verifyAccessTokenMiddleware } from '@/lib/auth/jwt-middleware';
+import { applySecurityHeaders } from '@/lib/security/security-headers';
 
 // This runs on the edge (faster, cheaper than serverless)
 export async function middleware(request: NextRequest) {
@@ -9,20 +9,35 @@ export async function middleware(request: NextRequest) {
 
   // Define protected routes that require authentication
   const protectedRoutes = [
-    '/protected',
-    '/set-password',
-    '/verification-status'
+    '/dashboard',
+    // Note: /verify and /set-password are NOT protected - they use verification_phone cookie
   ];
 
   // Get admin path from environment or use default
   const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH || process.env.ADMIN_PATH || '/admin';
   
-  // Define admin routes that require admin authentication
-  // const adminRoutes = [
-  //   `${adminPath}/dashboard`,
-  //   `${adminPath}/users`,
-  //   `${adminPath}/settings`
-  // ];
+  // Block access to admin pages via wrong paths (e.g., /login/login when adminPath is /muthalali)
+  // Extract the first segment to check if someone is trying to access admin via a different path
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const firstSegment = pathSegments[0] ? `/${pathSegments[0]}` : '';
+  const secondSegment = pathSegments[1];
+  
+  // List of admin-specific pages (that exist under [adminPath])
+  const adminPageNames = ['login', 'signin', 'dashboard', 'users', 'admin-users'];
+  
+  // If someone accesses /<something>/<admin-page> where <something> is NOT the configured adminPath
+  if (firstSegment !== adminPath && secondSegment && adminPageNames.includes(secondSegment)) {
+    // This is an unauthorized admin path access attempt - redirect to home
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
+  }
+  
+  // List of paths that should NOT be treated as admin routes
+  const publicAdminPaths = [
+    `${adminPath}/login`,
+    `${adminPath}/signin`,
+  ];
 
   // Check if current path requires authentication
   const isProtectedRoute = protectedRoutes.some(route => 
@@ -30,9 +45,10 @@ export async function middleware(request: NextRequest) {
   );
 
   // Check if current path is an admin route (dynamic admin path)
-  const isAdminRoute = pathname.startsWith(adminPath) && 
-    !pathname.startsWith(`${adminPath}/login`) &&
-    !pathname.startsWith('/api/admin/auth/');
+  // Must start with adminPath but NOT be a public admin path
+  const isPublicAdminPath = publicAdminPaths.some(path => pathname.startsWith(path));
+  const isAdminApiAuth = pathname.startsWith('/api/admin/auth/');
+  const isAdminRoute = pathname.startsWith(adminPath) && !isPublicAdminPath && !isAdminApiAuth;
 
   // Handle admin routes
   if (isAdminRoute) {
@@ -110,9 +126,9 @@ export async function middleware(request: NextRequest) {
 // Configure which paths trigger the middleware
 export const config = {
   matcher: [
-    '/protected/:path*',
+    '/dashboard/:path*',
     '/set-password',
-    '/verification-status',
+    '/verify',
     '/((?!api|_next/static|_next/image|favicon.ico).*)', // Match all routes except API and static files
   ],
 };

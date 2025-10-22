@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { generateAccessToken, verifyAccessToken } from '@/lib/jwt';
-// import { JWTPayload } from '@/lib/jwt-config';
+import { generateAccessToken, verifyAccessToken } from '@/lib/auth/jwt';
+// import { JWTPayload } from '@/lib/auth/jwt-config';
 
 interface SessionData {
   code: string;

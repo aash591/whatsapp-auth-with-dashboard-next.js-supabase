@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
-import { comparePassword } from '@/lib/auth-utils';
+import { getSupabaseAdmin } from '@/lib/database/supabaseAdmin';
+import { comparePassword } from '@/lib/auth/auth-utils';
 import { generateSecureAdminToken } from '@/utils/secureAuth';
-import { validateDoubleSubmitCSRF } from '@/lib/csrf-double-submit';
+import { validateDoubleSubmitCSRF } from '@/lib/security/csrf';
+import crypto from 'crypto';
 import { 
   createSecureErrorResponse, 
   handleDatabaseError, 
@@ -10,8 +11,8 @@ import {
   handleCSRFError,
   createGenericErrorResponse,
   sanitizeUserInput
-} from '@/lib/secure-error-handling-enhanced';
-import { applyAPISecurityHeaders } from '@/lib/security-headers';
+} from '@/lib/security/error-handling';
+import { applyAPISecurityHeaders } from '@/lib/security/security-headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +27,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const { username, password } = await request.json();
+    const body = await request.json();
+    const { username, password } = body as { username: string; password: string };
 
     // Sanitize user input
     const sanitizedUsername = sanitizeUserInput(username);
@@ -72,7 +74,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate secure session token
-    const crypto = require('crypto');
     const sessionToken = crypto.randomBytes(64).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 

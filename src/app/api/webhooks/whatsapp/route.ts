@@ -1,16 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
-import { extractVerificationCode, sendWhatsAppMessage } from '@/lib/whatsapp';
-import { validateVerificationCode, verifyWebhookSignature, verifyWebhookSignatureDetailed } from '@/lib/security';
+import { getSupabaseAdmin } from '@/lib/database/supabaseAdmin';
+import { extractVerificationCode, sendWhatsAppMessage } from '@/lib/webhooks/whatsapp';
 import { getServerEnv } from '@/lib/server-env';
-import { validateWebhookSecurity, logSecurityEvent } from '@/lib/webhook-security';
+import { validateWebhookSecurity, logSecurityEvent } from '@/lib/webhooks/webhook-security';
+import crypto from 'crypto';
 import { 
-  createSecureErrorResponse, 
-  handleDatabaseError, 
   handleConfigError,
   createGenericErrorResponse,
   sanitizeUserInput
-} from '@/lib/secure-error-handling-enhanced';
+} from '@/lib/security/error-handling';
+
+// Validate verification code format
+function validateVerificationCode(code: string): string {
+  const sanitized = sanitizeUserInput(code).toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(sanitized)) {
+    throw new Error('Invalid code format');
+  }
+  return sanitized;
+}
+
+// Verify webhook signature with detailed validation
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function verifyWebhookSignatureDetailed(body: string, signature: string | null, secret: string): { isValid: boolean; error?: string; metadata?: any } {
+  if (!signature) {
+    return { isValid: false, error: 'Missing signature' };
+  }
+  
+  const expectedSignature = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(body)
+    .digest('hex');
+  
+  const isValid = crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+  
+  return { isValid, metadata: { signatureLength: signature.length } };
+}
 
 // Simple in-memory deduplication (for production, use Redis)
 const processedMessages = new Map<string, number>();
@@ -126,8 +153,20 @@ export async function POST(request: NextRequest) {
       if (value?.messages?.[0]) {
         const message = value.messages[0];
         const messageId = message.id;
-        const from = message.from;
+        const rawFrom = message.from;
         const messageText = message.text?.body || '';
+        
+        // Normalize phone number (remove +, spaces, hyphens, and country code for India)
+        let from = rawFrom.replace(/[\s\-\(\)\+]/g, '');
+        
+        // Remove country code (91 for India) if present
+        // WhatsApp sends: 917034321846
+        // We store: 7034321846
+        if (from.startsWith('91') && from.length > 10) {
+          from = from.substring(2); // Remove '91' prefix
+        }
+        
+        console.log(`[WEBHOOK DEBUG] Raw phone: ${rawFrom}, Normalized phone: ${from}`);
 
         // Check if we've already processed this message
         if (processedMessages.has(messageId)) {
@@ -164,7 +203,7 @@ export async function POST(request: NextRequest) {
           let code: string;
           try {
             code = validateVerificationCode(extractedCode);
-          } catch (error: any) {
+          } catch {
             console.log(`Invalid code format: ${extractedCode}`);
             await sendWhatsAppMessage(
               from,
@@ -173,21 +212,48 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: true });
           }
 
-          // Look up code in database (only non-expired codes)
+          // Look up code in database (only non-expired codes AND matching phone number)
           const supabaseAdmin = getSupabaseAdmin();
+          
+          // Debug: Log the lookup details
+          console.log(`[WEBHOOK DEBUG] Looking up code: ${code}, phone: ${from}`);
+          
           const { data: verificationData, error: lookupError } = await supabaseAdmin
             .from('verification_codes')
             .select('*')
             .eq('code', code)
+            .eq('whatsapp_number', from) // SECURITY: Must match the sender's phone number
             .gt('expires_at', new Date().toISOString())
             .single();
 
+          // Debug: Log lookup result
+          if (lookupError) {
+            console.log(`[WEBHOOK DEBUG] Lookup error:`, lookupError);
+          }
+          if (verificationData) {
+            console.log(`[WEBHOOK DEBUG] Found verification data for phone: ${verificationData.whatsapp_number}`);
+          } else {
+            console.log(`[WEBHOOK DEBUG] No matching verification found. Checking if code exists at all...`);
+            // Check if the code exists with any phone number (for debugging)
+            const { data: anyCodeData } = await supabaseAdmin
+              .from('verification_codes')
+              .select('code, whatsapp_number, verified, expires_at')
+              .eq('code', code)
+              .single();
+            
+            if (anyCodeData) {
+              console.log(`[WEBHOOK DEBUG] Code EXISTS but phone mismatch! DB phone: ${anyCodeData.whatsapp_number}, Webhook phone: ${from}`);
+            } else {
+              console.log(`[WEBHOOK DEBUG] Code does not exist or is expired`);
+            }
+          }
+
           // Database lookup completed
 
-          if (lookupError || !verificationData) {
+          if (!verificationData) {
             await sendWhatsAppMessage(
               from,
-              '❌ Invalid verification code. Please check and try again.'
+              '❌ Invalid verification code or phone number mismatch. Please check and try again.'
             );
           } else if (verificationData.verified) {
             await sendWhatsAppMessage(
@@ -206,7 +272,7 @@ export async function POST(request: NextRequest) {
 
             if (updateError) {
               // Log error securely without exposing details
-              console.error('Error updating verification status:', sanitizeUserInput(updateError));
+              console.error('Error updating verification status:', updateError);
               await sendWhatsAppMessage(
                 from,
                 '❌ Error verifying your code. Please try again.'
@@ -238,4 +304,6 @@ export async function POST(request: NextRequest) {
     });
   }
 }
+
+
 

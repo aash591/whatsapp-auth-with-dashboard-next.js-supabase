@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 
 interface AdminUser {
   id: string;
@@ -13,10 +12,8 @@ interface AdminUser {
 }
 
 export default function AdminDashboard() {
-  const params = useParams();
-  const adminPath = params.adminPath;
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAdminData = async () => {
