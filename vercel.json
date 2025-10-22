@@ -1,6 +1,7 @@
 {
   "functions": {
     "app/api/**/*.ts": {
+      "runtime": "nodejs18.x",
       "maxDuration": 30
     }
   },
@@ -53,5 +54,9 @@
       "source": "/api/csrf-token",
       "destination": "/api/csrf-token"
     }
-  ]
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install"
 }
